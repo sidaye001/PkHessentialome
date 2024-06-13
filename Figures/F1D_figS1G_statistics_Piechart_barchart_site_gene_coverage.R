@@ -69,8 +69,8 @@ sum(transposon_count_matrix_essen_bgremoved$Total)
 class_colors <- c("exon" = "#EC6B56", "intergenic" = "#FFC154", "intron" = "#47B39C")
 
 #####In total 5270 genes has TTAA in CDS
-#####Here, 5308 should be in total how many genes has TTAA(including CDS and introns)
-Total_Nogene <- 5308-length(genomic_deletion_genes)
+#####Here, 5308 should be in total how many genes has TTAA(including CDS and introns), excluding API/MIT and genomic deletion regions
+Total_Nogene <- 5308
 #####Remove genomic deletion sites#########
 #####Remove API/MITO genes
 prop_stat <- function(tm, mode){
@@ -159,9 +159,9 @@ df_plot_total<- df_plot2 %>%
   summarize(Total = sum(Value))
 
 
-##############F1 main figure################
-##############F1 main figure################
-##############F1 main figure################
+##############F1D main figure################
+##############F1D main figure################
+##############F1D main figure################
 df_plot_total <- data.frame(Loc=c('Total','Total'),
                             Category=c('Covered','Uncovered'),
                             Value=c(df_plot_total$Total[grep("Covered",df_plot_total$Category)],

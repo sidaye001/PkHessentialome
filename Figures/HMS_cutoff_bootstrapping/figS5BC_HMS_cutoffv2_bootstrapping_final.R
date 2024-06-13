@@ -12,8 +12,7 @@ hms <- read.xlsx('./Output/MFS/HMS_MFS_regression_trending_results_pcgenes_loess
 dim(hms)
 tr.dat <- read.xlsx('./Input/NewGoldPlus_Combined.xlsx')
 tr.dat <- tr.dat %>% dplyr::transmute(PkGene = PkGene, num_TTAA = Pk.Theo.num.unique.insertions, 
-                                      Pk.HMS = Pk.HMS, GoldPlus = GoldPlus.final,
-                                      Pk.OIS= Pk.OIS)
+                                      Pk.HMS = Pk.HMS, Pk.OIS = Pk.OIS, GoldPlus = GoldPlus.final)
 
 hist(tr.dat$num_TTAA, nclass = 20)
 qq <- quantile(tr.dat$num_TTAA, probs = c(0.20, 0.80))
@@ -44,13 +43,11 @@ trainin.data.cutoff <- trainin.data %>% group_by(class) %>% summarise(lq = quant
 
 trainin.data$class <- factor(trainin.data$class, levels = c('Essential', 'NonEssential'))
 
+
 trainin.data<- trainin.data %>% dplyr::mutate(Category=ifelse(Pk.HMS<0.26,"essential",ifelse(Pk.HMS>0.88,"dispensable","intermediate")))
 trainin.data$Category <- factor(trainin.data$Category, levels=c("essential","dispensable","intermediate"))
 set.seed(1024)
 
-##################fig.S4b:HMS distribution of gold plus genes#####################
-##################fig.S4b:HMS distribution of gold plus genes#####################
-##################fig.S4b:HMS distribution of gold plus genes#####################
 extendedgoldplus_HMS <- trainin.data%>%
   ggplot() +
   aes(y = Pk.HMS, 
@@ -78,113 +75,44 @@ extendedgoldplus_HMS2 <- extendedgoldplus_HMS+stat_compare_means(
   step.increase = 0.01,
   size=4
 )
-ggsave(filename = "./Output/Figures/F2S/extendedgoldplus_HMS_v2.pdf", plot=extendedgoldplus_HMS2, width =4,height = 4, dpi = 300)
+ggsave(filename = "./Output/Figures/F2S/extendedgoldplus_HMS.pdf", plot=extendedgoldplus_HMS2, width =4,height = 4, dpi = 300)
 
 
-trainin.data<- trainin.data %>% dplyr::mutate(Category2=ifelse(Pk.OIS<0.19,"essential",ifelse(Pk.OIS>0.93,"dispensable","intermediate")))
-trainin.data$Category2 <- factor(trainin.data$Category2, levels=c("essential","dispensable","intermediate"))
-set.seed(2048)
-##############OIS#############################
-extendedgoldplus_OIS <- trainin.data%>%
-  ggplot() +
-  aes(y = Pk.OIS, 
-      x = class) +
-  geom_violin(alpha = .8,scale = "width", fill="lightgrey")+
-  geom_jitter(aes(col=Category2),width = 0.3, alpha = 0.2)+
-  geom_boxplot(fill="lightgrey",width=0.1, size=0.5,outlier.shape = NA)+
-  geom_hline(yintercept = 0.19, linetype = "dashed", color = "#C63135",linewidth=1,alpha = 1)+
-  geom_hline(yintercept = 0.93, linetype = "dashed", color = "#237AB6",linewidth=1,alpha = 1)+
-  geom_point(stat = "summary", fun = "median", color = "black", fill = "white", shape = 21, size = 3) +  
-  scale_color_manual(values = c("#C63135", "#237AB6", "black"))+
-  xlab(" ") +
-  ylab("OIS") +theme_cowplot()+
-  ggtitle("") + theme(
-    plot.title = element_text(color="black", size=14), 
-    legend.key = element_rect(fill = "transparent", colour = "transparent"), legend.text = element_text(size=12),
-    axis.text = element_text(size = 14),  axis.title=element_text(size=16), legend.background = element_blank())+theme(legend.position = "none")+
-  theme(panel.grid = element_blank())+
-  scale_x_discrete(labels = c("essential", "dispensable"))+ylim(0, NA)
 
-extendedgoldplus_OIS2 <- extendedgoldplus_OIS+stat_compare_means(
-  comparisons = list(c("Essential", "NonEssential")),
-  method = "wilcox.test",
-  label = "p.signif",
-  step.increase = 0.01,
-  size=4
-)
-ggsave(filename = "./Output/Figures/F2S/extendedgoldplus_OIS_v2.pdf", plot=extendedgoldplus_OIS2, width =4,height = 4, dpi = 300)
-
-##################fig.S4C:To calculate the confusion matrix#####################
-##################fig.S4C:To calculate the confusion matrix#####################
-##################fig.S4C:To calculate the confusion matrix#####################
-
-###############Confusion matrix for HMS###############
-
+##################To calculate the confusion matrix#####################
+#########It is not binary, a bit hard#############
 table(trainin.data$class)
 #####How many
 confusion_matrix_df <- trainin.data%>%group_by(class, Category)%>%summarize(count=n(), .groups = "drop")
 confusion_matrix_df2 <- confusion_matrix_df %>%
   group_by(class ) %>%
-  mutate(Prop = count / sum(count) *100)
+  mutate(Prop = count / sum(count))
 
-confusion_matrix_df2$Category <- factor(confusion_matrix_df2$Category, levels=c('essential','intermediate','dispensable'))
-
-
+confusion_matrix_df3 <- c(261,4+37,5+12,70)
+confusion_matrix<- matrix(confusion_matrix_df3,nrow =2, ncol = 2, byrow = FALSE)
+#conf_matrix <- confusionMatrix(confusion_matrix)
+#conf_matrix
+# Calculate percentages
+percentages_matrix <- prop.table(confusion_matrix,margin =2) * 100
+percentages_matrix_df <- as.data.frame(percentages_matrix)
+colnames(percentages_matrix_df) <- c("Predicted essential","Predicted Nonessential")
+rownames(percentages_matrix_df) <- c("gold plus essential","gold plus dispensable")
+# Convert row names to a column
+percentages_matrix_df <- tibble::rownames_to_column(percentages_matrix_df, var = "Goldplus")
+percentages_matrix_df2 <-pivot_longer(percentages_matrix_df, cols=-Goldplus,names_to = c("Predicted"), values_to = "Percentage")
+percentages_matrix_df2$Count <- c(confusion_matrix_df3)
+percentages_matrix_df2$Percentage <- round(percentages_matrix_df2$Percentage,2)
 # Plot heatmap using ggplot2
-confusion_plot <- ggplot(confusion_matrix_df2, aes(x = class, y = Category, fill = Prop)) +
-  geom_tile(color = "black") +theme_bw()+
-  coord_equal() +
-  geom_text(aes(label = count), color = "black", size = 5)+
-  labs(x = "Gold plus", y = "Predicated by HMS") +  
-  scale_x_discrete(labels = c("essential","dispensable")) +
-  scale_fill_distiller(name = "Percentage",palette="Greens", direction=1)+
-  theme(legend.text = element_text(color = "black", size = 14),
-        legend.title = element_text(color = "black", size = 14))+
-  theme(axis.title.x = element_text(size = 16, color = "black", family = "sans"),  # Adjust x-axis title properties
-        axis.title.y = element_text(size = 16, color = "black", family = "sans"),  # Adjust y-axis title properties
-        axis.text.x = element_text(size = 14,angle = 45, vjust = 1, hjust = 1, colour = 'black',family = "sans"),  
-        axis.text.y = element_text(size = 14, colour = 'black',family = "sans"),
-        panel.grid.major = element_blank(),      # Remove major gridlines
-        panel.grid.minor = element_blank())      # Remove minor gridlines
+ggplot(percentages_matrix_df2, aes(x = Predicted, y = Goldplus, fill = Percentage)) +
+  geom_tile(color = "black") +
+  coord_fixed() +
+  geom_text(aes(label = Percentage), color = "white", size = 4) +
+  geom_text(aes(label = Count), color = "white", size = 4) +
+  guides(fill = guide_colourbar(barwidth = 0.5,
+                                barheight = 5))
+#ggsave("~/work/Cancer/fibrosis/urine_2015/prostate_vol.pdf", width = 4, height = 4)
 
 
-ggsave("./Output/Figures/F2S/figS4_confusion_heatmap.pdf", plot = confusion_plot, width = 5, height = 4)
-
-###############Confusion matrix for OIS###############
-table(trainin.data$class)
-#####How many
-confusion_matrix_df <- trainin.data%>%group_by(class, Category2)%>%summarize(count=n(), .groups = "drop")
-confusion_matrix_df2 <- confusion_matrix_df %>%
-  group_by(class ) %>%
-  mutate(Prop = count / sum(count) *100)
-
-confusion_matrix_df2$Category2 <- factor(confusion_matrix_df2$Category2, levels=c('essential','intermediate','dispensable'))
-
-
-# Plot heatmap using ggplot2
-confusion_plot <- ggplot(confusion_matrix_df2, aes(x = class, y = Category2, fill = Prop)) +
-  geom_tile(color = "black") +theme_bw()+
-  coord_equal() +
-  geom_text(aes(label = count), color = "black", size = 5)+
-  labs(x = "Gold plus", y = "Predicated by OIS") +  
-  scale_x_discrete(labels = c("essential","dispensable")) +
-  scale_fill_distiller(name = "Percentage",palette="Greens", direction=1)+
-  theme(legend.text = element_text(color = "black", size = 14),
-        legend.title = element_text(color = "black", size = 14))+
-  theme(axis.title.x = element_text(size = 16, color = "black", family = "sans"),  # Adjust x-axis title properties
-        axis.title.y = element_text(size = 16, color = "black", family = "sans"),  # Adjust y-axis title properties
-        axis.text.x = element_text(size = 14,angle = 45, vjust = 1, hjust = 1, colour = 'black',family = "sans"),  
-        axis.text.y = element_text(size = 14, colour = 'black',family = "sans"),
-        panel.grid.major = element_blank(),      # Remove major gridlines
-        panel.grid.minor = element_blank())      # Remove minor gridlines
-
-
-ggsave("./Output/Figures/F2S/figS4_confusion_heatmap_OIS.pdf", plot = confusion_plot, width = 5, height = 4)
-
-
-
-
-###############cutoff validation by bootstrapping###############
 ## Remove 0's and 1's
 HMS <- data.frame(y = hms$HMS)
 HMS$y[HMS$y == 1] <- 1 - 1e-6

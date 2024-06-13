@@ -41,7 +41,7 @@ p.HMS.background <- p.HMS+theme(
   axis.text = element_text(size = 14),  axis.title=element_text(size=16,margin = margin(t = 10)), legend.background = element_blank())+theme_cowplot()
 
 #legend.position = c(0.05, 1)
-Gene.name= c('PKNH_0817000','PKNH_0817100','PKNH_1355400')
+#Gene.name= c('PKNH_0817000','PKNH_0817100','PKNH_1355400')
 Gene.name= c('PKNH_0817000','PKNH_0817100','PKNH_0806500','PKNH_1355400')
 point_list<- Total.df3[Total.df3$geneID%in%Gene.name,]
 

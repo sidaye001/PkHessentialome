@@ -72,7 +72,7 @@ p1 <- ggplot(exon_intron_df2, aes(x = Value1, y = Value2, color = HMS)) +
   theme(panel.grid = element_blank(), 
         axis.title = element_text(size = 14),  # Increase axis title size
         axis.text = element_text(size = 12,color = "black")) + # Increase axis scale size
-  labs(x = "Insertions per gene per site in exons", y = "Insertions per gene per site in introns")+
+  labs(x = "Reads per gene per site in exons", y = "Reads per gene per site in introns")+
   geom_text_repel(
     data = subset(exon_intron_df2, GeneID %in% gold_essential),
     aes(label = GeneID),

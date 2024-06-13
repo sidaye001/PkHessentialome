@@ -192,6 +192,9 @@ data_summary$Category <- factor(data_summary$Category, levels=unique(data_summar
 #  scale_y_continuous(sec.axis = sec_axis(~./2000, breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1), name = "Proportion"))+
 #  scale_color_manual(values = c("above_bg" = "#F8AC8C", "below_bg" = "#9AC9DB"))
 
+####################################figS3B######################################
+####################################figS3B######################################
+####################################figS3B######################################
 ggplot(data_summary, aes(x = Category, y = num, fill = Category2)) +
   geom_bar(stat = "identity", position="stack", alpha = 1) +
   labs(title = "", x = "Number of TTAA within CDS", y = "Number of genes") +theme_cowplot()+

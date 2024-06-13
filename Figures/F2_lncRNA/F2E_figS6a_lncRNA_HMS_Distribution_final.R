@@ -120,24 +120,3 @@ bar_plot <- ggplot(df_plot3, aes(x = class_code, y = Prop, fill=Category)) +
 ggsave(filename = "./Output/Figures/F2/F2S_lncRNA_proportion.pdf", plot=bar_plot,width = 4, height = 4, dpi = 300)
 
 
-####################Nearest gene's HMS################
-####################Nearest gene's HMS################
-####################Nearest gene's HMS################
-gr1 <- read.table('./Output/lncRNA/864_lncRNA_transcripts.bed')
-
-lncRNA_all%>%
-  ggplot() +
-  aes(y = nearest.PkH.HMS, 
-      x = class_code,
-      fill = class_code) +ylim(0, 1)+
-  geom_violin(alpha = .8,color="black", scale = "width")+
-  geom_jitter(width = 0.3, alpha = 0.2)+
-  xlab("") +
-  ylab("HMS") +
-  ggtitle("") + theme_bw() + theme(
-    plot.title = element_text(color="black", size=14, face="bold"), 
-    legend.key = element_rect(fill = "transparent", colour = "transparent"), legend.text = element_text(size=12),
-    axis.text = element_text(size = 12),  axis.title=element_text(size=14), legend.background = element_blank())+theme(legend.position = "none")+
-  theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5, face = "bold"))+theme(panel.grid = element_blank())+theme_cowplot()
-
-

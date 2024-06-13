@@ -48,8 +48,8 @@ HMS_df <- HMS_df%>%dplyr::mutate(gene_category2=ifelse(HMS<0.26,"essential",ifel
                                                                                                  ifelse(Theo.num.unique.insertions<5& HMS>0.26 & HMS<0.88,"short",ifelse(HMS_df$geneID%in%prime3$GeneID,"3' truncation",
                                                                                                                                                                          ifelse(HMS_df$geneID%in%prime5$GeneID,"5' truncation",'others'))))))))
 
-#fitness_favored <- HMS_df%>%dplyr::filter(MFS.slope>c1.Fslope.ep & lm.adjusted.p.value<=0.05 & Theo.num.unique.insertions>=5 &HMS>0.26)
-#slow <- HMS_df%>%dplyr::filter(MFS.slope<c2.Fslope.ep & lm.adjusted.p.value<=0.05 & Theo.num.unique.insertions>=5& HMS>0.26)
+fitness_favored <- HMS_df%>%dplyr::filter(MFS.slope>c1.Fslope.ep & lm.adjusted.p.value<=0.05 & Theo.num.unique.insertions>=5 &HMS>0.26)
+slow <- HMS_df%>%dplyr::filter(MFS.slope<c2.Fslope.ep & lm.adjusted.p.value<=0.05 & Theo.num.unique.insertions>=5& HMS>0.26)
 
 
 #######Only for essential, dispensable and intermediate
@@ -141,9 +141,9 @@ ggsave(filename = "./Output/Figures/F2/F2d_piechart4.pdf", plot=p3, width = 10,h
 #####Double check
 p3_df2 <- mutate(p3_df, percentage =round(Count / sum(Count) * 100,2))
 
-######################fig.S4e Upset##################
-######################fig.S4e Upset##################
-######################fig.S4e Upset##################
+######################fig.S9D Upset##################
+######################fig.S9D Upset##################
+######################fig.S9D Upset##################
 ###Step1: to create a binary matrix for upset plotting
 #create an empty dataframe
 category_df <- data.frame(
