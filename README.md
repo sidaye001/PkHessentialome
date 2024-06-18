@@ -2,6 +2,9 @@
 **This page provide instructions for running statistical and mathematical analysis on Tn-Seq data of Plasmodium knowlesi H strain essentialome and drug perturbation.The analysis are as follows:**
 
 - Preprocessing before essentiality modelling
+- Hidden Markov Model for coldspots identification
+- Hidden Markov Model for depleted regions identification
+- Motif analysis
 - MMIS modelling
 - OIS modelling
 - HMS modelling
@@ -9,6 +12,7 @@
 - lncRNA analysis
 - genomic deletion analysis
 - Perturbation analysis
+- Comparative essentialomes analysis
 - Figures
 
 **Running the code:**
