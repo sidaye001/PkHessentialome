@@ -25,3 +25,22 @@ HMS_violin_plot <- function(df, x_category){
 }
 
 
+##transform gtf file into bed file
+function_gtf_to_bed <- function(x){
+  x <- x%>% dplyr::select(V1, V4, V5, V9, V3, V7)
+  x <- x %>% dplyr::rename(V1=V1, V2=V4, V3=V5, V4=V9, V5=V3, V6=V7)
+  x$V5 <- '0'
+  
+  return(x)
+}
+
+######Intron extraction#######
+###Group by chr, geneID and strand
+introns_bed <- exons_sorted %>%
+  group_by(V1, V4, V6) %>%
+  arrange(V2) %>%
+  mutate(next_start = lead(V2), next_end = lead(V3)) %>%
+  filter(!is.na(next_start)) %>%
+  transmute(V1 = V1, V2 = V3, V3 = next_start, V4 = V4, score = ".", V6 = V6) %>%
+  filter(V3 > V2)
+

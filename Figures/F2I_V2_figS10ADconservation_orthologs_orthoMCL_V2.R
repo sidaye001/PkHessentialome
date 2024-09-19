@@ -9,6 +9,7 @@ library(ggExtra)
 library(gtable)
 library(gg.gap)
 library(readxl)
+library(ggforce)
 
 Input.dir <- './Input/OrthoMCL/'
 count.files <- list.files(Input.dir)
@@ -290,7 +291,9 @@ GO_merge_HMS <- function(HMS_df, filtered.Go){
 }
 
 filtered.Go2 <- GO_merge_HMS(HMS_df=df2, filtered.Go=filtered.Go)
-GO_legend_keylabels_cols <- c("#793718","darkgreen","midnightblue")
+
+GO_legend_keylabels_cols <- c("#FFA500","#007e41","#A2A2A2")
+#GO_legend_keylabels_cols <- c("#793718","darkgreen","midnightblue")
 GO_plot <- function(filtered.Go2){
   
   #theme(strip.placement = "outside")
@@ -298,7 +301,12 @@ GO_plot <- function(filtered.Go2){
     facet_rep_wrap(factor(Con.depth) ~ ., nrow = n_category, repeat.tick.labels = TRUE, scales = 'free',strip.position = "left") +
     geom_point(aes(size = `Result count`, color = GF, fill = median_HMS, stroke=1.5), shape = 21) +
     scale_size(range = c(1,10)) +
-    scale_fill_gradient2(low = "red", mid = "white", high = muted("#237AB6"), midpoint = 0.5, space = "Lab", name = "HMS median",limits = c(0, 1))+
+    #scale_fill_gradient2(low = "red", mid = "white", high = muted("#237AB6"), midpoint = 0.5, space = "Lab", name = "HMS median",limits = c(0, 1))+
+    scale_fill_gradientn(
+      colors = c("red","red","white", muted("blue") ,muted("blue")),  # Define the colors
+      values = c(0, 0.26, 0.5, 0.88, 1),          # Correctly mapping colors to specific data values
+      rescaler = function(x, ...) x,              # Use this to pass raw data values directly
+      limits = c(0, 1))+
     scale_color_manual(values = GO_legend_keylabels_cols) +
     geom_text_repel(data = filtered.Go2, aes(color = GF),
                     box.padding = unit(0.5, 'lines'), size = 5 ,
@@ -345,7 +353,7 @@ for (i in stripr) {
 
 grid.draw(g)
 
-ggsave(filename = "./Output/Conservation/figs/GO2.pdf", 
+ggsave(filename = "./Output/Figures/review/Conservation_GO2.pdf", 
        plot = g, 
        width = 15, height = 10, 
        dpi = 300)

@@ -271,7 +271,7 @@ gene_gr <- all.genes[all.genes$gene_id=="PKNH_0817000",]
 
 start_values <- start(gene_gr)
 end_values <- end(gene_gr)
-#window_size <- 300
+window_size <- 300
 zoom.region <- toGRanges(data.frame(as.character(seqnames(gene_gr)), start_values-window_size, end_values+1500))
 
 
@@ -473,4 +473,9 @@ kpPoints(kp, data=nor_insertions, y=nor_insertions$nor, pch=16, cex = 1.2, r0=0.
 kpAxis(kp, ymax=max(nor_insertions$nor), ymin=min(nor_insertions$nor),r0=0.55, r1=0.95,cex=1.2)
 ###height=5 X width=7 inches
 
+###############essential lncRNA zoom in figures###########################
+###############essential lncRNA zoom in figures###########################
+###############essential lncRNA zoom in figures###########################
+##########To input lncRNA gtf file##################
+lncRNA_gtf864 <-  read.table("../lncRNA/output_withguide/assemble_gtf/PkH_RABT_guided_864lncRNA.gtf", sep = '\t')
 

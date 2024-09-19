@@ -80,19 +80,23 @@ p <- ggplot(data = df2, mapping = aes(x = HMS, y = MFS.slope)) +
     axis.text = element_text(size = 14, color="black"),  axis.title=element_text(size=16), legend.background = element_blank())+theme(panel.grid = element_blank())+theme(
       panel.border = element_rect(color = "black", fill = NA),
       legend.key.size = unit(0.4, 'cm'),
-      legend.position = c(0.6, 0.4),
+      legend.position = c(0.6, 1.005),
+      #legend.position = c(0.6, 0.4),
       legend.justification = c(0, 1))+
   labs(y="FIS",color = "Count")+
   #geom_vline(xintercept = kneepoints1, linetype = "dashed", color = "red",linewidth=1.2,alpha = 1)+
   geom_vline(xintercept = kneepoints2, linetype = "dashed", color = "#C63135",linewidth=1.2,alpha = 1)+
   geom_vline(xintercept = kneepoints3, linetype = "dashed", color = "#237AB6",linewidth=1.2,alpha = 1)+
   geom_hline(yintercept = 0, linetype = "dashed", color = "grey",linewidth=1,alpha = 1)+
-  ylim(c(-1, 0.5))
+  ylim(c(-0.5, 0.5))
   
 #ylim(c(-1, 0.5))
 F2_HMS_FIS <- ggMarginal(p, type = c("density"), xparams = list(fill = "grey"), yparams = list(fill = "grey"))
 
-ggsave(filename = "./Output/Figures/F2/F2C_HMS_FIS2.pdf", plot=F2_HMS_FIS, width = 4,height = 4, dpi = 300)
+#ggsave(filename = "./Output/Figures/F2/F2C_HMS_FIS2.pdf", plot=F2_HMS_FIS, width = 4,height = 4, dpi = 300)
+ggsave(filename = "./Output/Figures/review/F2C_HMS_FIS2.pdf", plot=F2_HMS_FIS, width = 4,height = 4, dpi = 300)
+
+
 ######Mapping No. of TTAA#######
 ######Mapping No. of TTAA#######
 ######Mapping No. of TTAA#######

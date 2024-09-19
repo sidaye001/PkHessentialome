@@ -15,9 +15,8 @@ library(VennDiagram)
 library(ggVennDiagram)
 library(gridExtra)
 library(ggrepel)
-library(ComplexHeatmap)
 
-#########This script is only for 1:1 pairwise orthologs between Pk, Pf and Pb with low cutoff##################
+#########This script is only for 1:1 pairwise orthologs between Pk, Pf and Pb##################
 
 PkvsPf <- read.xlsx("./Input/1to1_orthologs/Pk_Pf_1to1orthologs.xlsx")
 PkvsPb <- read.xlsx("./Input/1to1_orthologs/Pk_Pb_1to1orthologs.xlsx")
@@ -61,25 +60,39 @@ colnames(Pb_RGR_exploded2) <- c("GeneID.Pb_ANKA","Pb.Product.description" ,"Pb.R
 
 merged_all <- left_join(left_join(left_join(PkvsPfvsPb,Pk_essen,by='GeneID.Pk_H'),Pf_MIS_MFS,by='GeneID.Pf_3D7'),Pb_RGR_exploded2,by='GeneID.Pb_ANKA')
 ###########################Shared essential and non-essential groups######################
-#########################To use cutoff to filter out essential/non-essential genes with high confidence##################
+#########################To use cutoff to filter out essential/non-essential genes with lower cutoff##################
 orthologs_1on1_filtered3 <- merged_all
 colnames(orthologs_1on1_filtered3)[grep("GeneID.Pk_H",colnames(orthologs_1on1_filtered3))] <- "geneID"
-orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.transcript.length>=650)
-orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(!is.na(HMS)& !is.na(Pf.MIS) & !is.na(Pb.Relative.Growth.Rate))
+
+#orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.transcript.length>=650)
+#orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(!is.na(HMS)& !is.na(Pf.MIS) & !is.na(Pb.Relative.Growth.Rate))
+#nrow(orthologs_1on1_filtered3)
+#orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(((Pf.phenotype=='Mutable in CDS'&Pf.MIS>0.8)|(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2))&
+#                                                                       ((Pb.Relative.Growth.Rate>0.9&Pb.phenotype=='Dispensable')|(Pb.Relative.Growth.Rate<0.2&Pb.phenotype=='Essential'))&
+#                                                                       ((HMS>0.88)|(HMS<0.26)))
+#nrow(orthologs_1on1_filtered3)
+
+#########Optional: To exclude those genes has no calls in Pb or Pf and Pk######################
+orthologs_1on1_filtered3 <- orthologs_1on1_filtered3[!is.na(orthologs_1on1_filtered3$Pb.phenotype)&!(is.na(orthologs_1on1_filtered3$Pf.phenotype))&!(is.na(orthologs_1on1_filtered3$HMS)),]
 nrow(orthologs_1on1_filtered3)
-orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(((Pf.phenotype=='Mutable in CDS'&Pf.MIS>0.8)|(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2))&
-                                                                       ((Pb.Relative.Growth.Rate>0.9&Pb.phenotype=='Dispensable')|(Pb.Relative.Growth.Rate<0.2&Pb.phenotype=='Essential'))&
+orthologs_1on1_filtered3 <- orthologs_1on1_filtered3[(orthologs_1on1_filtered3$Pb.phenotype!="Slow")&(orthologs_1on1_filtered3$Pb.phenotype!="Fast")&(orthologs_1on1_filtered3$Pb.phenotype!="Insufficient data"),]
+nrow(orthologs_1on1_filtered3)
+orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(((Pf.phenotype=='Mutable in CDS')|(Pf.phenotype=='Non - Mutable in CDS'))&
+                                                                       ((Pb.phenotype=='Dispensable')|(Pb.phenotype=='Essential'))&
                                                                        ((HMS>0.88)|(HMS<0.26)))
 nrow(orthologs_1on1_filtered3)
 
-Pf_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Mutable in CDS'&Pf.MIS>0.8)
-Pf_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2)
 
-Pb_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.Relative.Growth.Rate>0.9&Pb.phenotype=='Dispensable')
-Pb_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.Relative.Growth.Rate<0.2&Pb.phenotype=='Essential')
+Pf_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Mutable in CDS')
+Pf_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Non - Mutable in CDS')
+
+Pb_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.phenotype=='Dispensable')
+Pb_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.phenotype=='Essential')
 
 Pk_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(HMS>0.88)
 Pk_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(HMS<0.26)
+
+
 
 venn11 <- list(P.knowlesi=Pk_all1$geneID, P.berghei=Pb_all1$geneID, P.falciparum=Pf_all1$geneID)
 venn00 <- list(P.knowlesi=Pk_all0$geneID, P.berghei=Pb_all0$geneID, P.falciparum=Pf_all0$geneID)
@@ -134,8 +147,8 @@ p00 <- venn.diagram(
 )
 grid.draw(p00)
 
-Out.dir <- "./Output/Figures/F3/"
-cairo_pdf(paste0(Out.dir,"F3b_venn_final",".pdf"),width = 10, height = 5, pointsize = 12)
+Out.dir <- "./Output/Figures/review/F3/"
+cairo_pdf(paste0(Out.dir,"F3b_venn_final_lowcutoff_haveallcalls2",".pdf"),width = 10, height = 5, pointsize = 12)
 discrepancy_venn <- grid.arrange(p00, p11, nrow = 1) + theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
 
 dev.off()
@@ -171,10 +184,10 @@ count_p
 # Extract the intersection
 venn11_intersection <- Reduce(intersect, venn11)
 length(venn11_intersection)
-write.table(as.data.frame(venn11_intersection), './Output/Comparative/PkPfPb_nonessential_orthoMCL1on1orthologs.txt',col.names=F, row.names = F, quote = F)
+write.table(as.data.frame(venn11_intersection), './Output/Comparative/lowcutoff/PkPfPb_nonessential_orthoMCL1on1orthologs_haveallcalls.txt',col.names=F, row.names = F, quote = F)
 venn00_intersection <- Reduce(intersect, venn00)
 length(venn00_intersection)
-write.table(as.data.frame(venn00_intersection), './Output/Comparative/PkPfPb_essential_orthoMCL1on1orthologs.txt',col.names=F, row.names = F, quote = F)
+write.table(as.data.frame(venn00_intersection), './Output/Comparative/lowcutoff/PkPfPb_essential_orthoMCL1on1orthologs_haveallcalls.txt',col.names=F, row.names = F, quote = F)
 
 Discrepancy_essential <- data.frame(geneID=unique(append(append(Pf_all0$geneID,Pb_all0$geneID),Pk_all0$geneID)),
                                     labels=NA)
@@ -222,8 +235,8 @@ table(Discrepancy_dispensable$labels)
 
 Discrepancy_essential2 <- left_join(Discrepancy_essential,orthologs_1on1_filtered3,by="geneID")
 Discrepancy_dispensable2<- left_join(Discrepancy_dispensable,orthologs_1on1_filtered3,by="geneID")
-write.xlsx(Discrepancy_essential2 , './Output/Comparative/Discrepancy_essential_v2.xlsx')
-write.xlsx(Discrepancy_dispensable2 , './Output/Comparative/Discrepancy_dispensable_v2.xlsx')
+write.xlsx(Discrepancy_essential2 , './Output/Comparative/lowcutoff/Discrepancy_essential_lowcutoff_haveallcalls2.xlsx')
+write.xlsx(Discrepancy_dispensable2 , './Output/Comparative/lowcutoff/Discrepancy_dispensable_lowcutoff_haveallcalls2.xlsx')
 intersect(Discrepancy_essential2$geneID,Discrepancy_dispensable2$geneID)
 #######################################################
 ##############GO term for each gene list categories#################
@@ -233,6 +246,7 @@ intersect(Discrepancy_essential2$geneID,Discrepancy_dispensable2$geneID)
 # Result.count:  Number of genes with this term in your results
 # Fold.enrichment: The percent of the genes with this term in your result divided by the 
 # percent of the genes with this term in bkgnd
+
 
 
 #----------------------------------
@@ -253,7 +267,7 @@ library(tidyr)
 
 
 
-in.dir <- './Output/Comparative/GO/OrthoMCL_PkPfPb/'
+in.dir <- './Output/Comparative/lowcutoff/GO/OrthoMCL_PkPfPb/'
 all.files <- list.files(in.dir)
 
 ######create an empty list
@@ -270,19 +284,19 @@ for(f in all.files){
 }
 ######row bind all the 
 all.clust.items <- do.call(rbind, all.clust.items)
-write.xlsx(all.clust.items,'./Output/Shared_GO/Shared_essential_dispensable_PvPkPf_GO.xlsx')
+write.xlsx(all.clust.items,'./Output/Shared_GO/Shared_essential_dispensable_PvPkPf_GO_lowcutoff.xlsx')
 ######at least 8 to 10 genes for each Term
 filtered.Go <- all.clust.items %>% arrange(Benjamini) %>% distinct() %>% group_by(GF, Category) %>%
   mutate(rank = row_number()) %>%
   dplyr::filter(Benjamini < 0.5 & rank <= 8 & `Result count` >=3) %>% 
   arrange(Benjamini) 
 
-write.xlsx(filtered.Go,'./Output/Shared_GO/Shared_essential_dispensable_PvPkPf_GO_filtered.xlsx')
+write.xlsx(filtered.Go,'./Output/Shared_GO/Shared_essential_dispensable_PvPkPf_GO_filtered_lowcutoff.xlsx')
 
 
 ###################ready for plot#########################
 df2 <- read.xlsx('./Output/MFS/HMS_MFS_regression_trending_results_pcgenes_loess_normalization.xlsx')
-filtered.Go <- read.xlsx('./Output/Shared_GO/Shared_essential_dispensable_PvPkPf_GO_filtered_curated2.xlsx')
+filtered.Go <- read.xlsx('./Output/Shared_GO/Shared_essential_dispensable_PvPkPf_GO_filtered_curated_lowcutoff.xlsx')
 GO_merge_HMS <- function(HMS_df, filtered.Go){
   filtered.Go$distinct_ID <- seq(1,nrow(filtered.Go),by=1)
   HMS_df <- HMS_df%>%dplyr::select(geneID, HMS)
@@ -358,9 +372,9 @@ GO_plot <- function(filtered.Go2){
     guides(size = guide_legend(override.aes = list(fill = "black"),order = 2))+
     theme(strip.text = element_text(size = 16))
   
-#+ylim(c(3,10))
-    #theme(legend.position=c(0.93, 0.25))+
-    #theme(legend.box = 'horizontal')
+  #+ylim(c(3,10))
+  #theme(legend.position=c(0.93, 0.25))+
+  #theme(legend.box = 'horizontal')
   
   return(pp)
   
@@ -370,7 +384,7 @@ GO_plot <- function(filtered.Go2){
 p.Con<-GO_plot(filtered.Go2=filtered.Go.modified0)
 p.Con
 
-ggsave(filename = "./Output/Figures/F3/PfPkPb_shared_essential_GO2_curated3.pdf",
+ggsave(filename = "./Output/Figures/review/PfPkPb_shared_essential_GO2_lowcutoff.pdf",
        plot = p.Con, 
        width = 18, height = 9, 
        dpi = 300)
@@ -378,9 +392,7 @@ ggsave(filename = "./Output/Figures/F3/PfPkPb_shared_essential_GO2_curated3.pdf"
 
 p.Con1<-GO_plot(filtered.Go2=filtered.Go.modified1)
 p.Con1
-ggsave(filename = "./Output/Figures/F3/PfPkPb_shared_dispensable_GO_curated3.pdf",
+ggsave(filename = "./Output/Figures/review/PfPkPb_shared_dispensable_GO2_lowcutoff.pdf",
        plot = p.Con1, 
        width =18, height = 9, 
        dpi = 300)
-
-

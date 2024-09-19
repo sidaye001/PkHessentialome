@@ -45,14 +45,14 @@ file_path <- './Input/Input_sets_for_allTPN_heatmaps.xlsx'
 #custom_colors <- c("orange","red", "white", "blue")  # Replace "#99CCFF" with the desired muted blue color
 
 #custom_colors1 = colorRamp2(c( 0, 0.5, 1), c("red" ,"white", "blue"))
-Out.dir <- "./Output/Figures/F3/"
+Out.dir <- "./Output/Figures/review/"
 ####Also check the range of scores
 ####Alpha, beta cause problem
-pdf_name="heatmap1"
+#pdf_name="heatmap1"
 custom_colors1 = colorRamp2(c( 0.26, 0.5, 0.88), c("red" ,"white", muted("blue")))
 FIS_col_fun = colorRamp2(c(-0.14, 0, 0.04), c("orange", "white", "#007e41")) 
 
-Heat_map <- function(sheetNo,Transpose,h,w,d, score_df,legend_side,pdf_name){
+Heat_map <- function(sheetNo,Transpose,h,w,d, score_df,legend_side,pdf_name, bold_genes){
   df0 <- read_xlsx(file_path, sheet = sheetNo)
   df <- left_join(df0, scores2, by="PkGene")
   # Create a matrix with scores
@@ -66,6 +66,9 @@ Heat_map <- function(sheetNo,Transpose,h,w,d, score_df,legend_side,pdf_name){
   rownames(scores_matrix) <- genes
   #rownames(scores_matrix) <- geneName
   #scores <- colnames(scores_matrix)
+  
+  # List of specific genes to bold
+  #bold_genes <- c("FPP/GGPPS")  # Replace with your actual gene names
   # Create the heatmap
   if(Transpose==T){
     scores_matrix <- t(scores_matrix)
@@ -86,11 +89,13 @@ Heat_map <- function(sheetNo,Transpose,h,w,d, score_df,legend_side,pdf_name){
     row_names_side = "left",
     column_names_side = "bottom",
     show_row_names = TRUE,
+    #show_row_names = FALSE,
     show_column_names = TRUE,
     cluster_rows = FALSE,  # Do not cluster rows
     cluster_columns = FALSE,  # Do not cluster columns
     row_names_gp = gpar(fontsize = 12, fontfamily='sans'),  # Adjust row name size
-    column_names_gp = gpar(fontsize = 12, fontfamily='sans'),  # Adjust column name size
+    #column_names_gp = gpar(fontsize = 12, fontfamily='sans'),  # Adjust column name size
+    column_names_gp = gpar(fontsize = 12, fontfamily = 'sans', fontface = ifelse(genes %in% bold_genes, "bold", "plain")),  # Bold specific genes
     column_names_rot = 45,  # Rotate column names for better readability
     rect_gp = gpar(col = "white", lwd = 1), #Add grid line
     border_gp = gpar(col = "black", lty = 1),  ## Add border line
@@ -100,7 +105,7 @@ Heat_map <- function(sheetNo,Transpose,h,w,d, score_df,legend_side,pdf_name){
                                 title = "Scores",
                                 title_position ="topcenter",
                                 legend_direction=lgd_direction),
-                                #legend_direction="vertical"),
+    #legend_direction="vertical"),
     col = custom_colors1  # Use custom color palette
   )
   
@@ -128,7 +133,7 @@ Heat_map <- function(sheetNo,Transpose,h,w,d, score_df,legend_side,pdf_name){
                                 title = "Pk.FIS",
                                 title_position ="topcenter",
                                 legend_direction=lgd_direction),
-                                #legend_direction="vertical"),
+    #legend_direction="vertical"),
     col = FIS_col_fun  # Use custom color palette
   )
   
@@ -160,17 +165,22 @@ Heat_map <- function(sheetNo,Transpose,h,w,d, score_df,legend_side,pdf_name){
   #heatmap_list <- heatmap1+heatmap2
   
   if(Transpose==T){
-    heatmap_list <- heatmap1%v%heatmap2
+    #heatmap_list <- heatmap1%v%heatmap2
+    #No Pk.FIS heatmap
+    heatmap_list <- heatmap1
+  
   }else{
-    heatmap_list <- heatmap1+heatmap2
+    #heatmap_list <- heatmap1+heatmap2
+    #No Pk.FIS heatmap
+    heatmap_list <- heatmap1
   }
-
+  
   ####To add a single legend on the heatmap
   legend_na = Legend(labels = c(""), title = "No data",title_position ="topcenter",
                      #legend size
                      grid_height = unit(4.5, "mm"),
                      grid_width = unit(4.5, "mm"),
-                       legend_gp = gpar(fill = c("darkgrey")))
+                     legend_gp = gpar(fill = c("darkgrey")))
   cairo_pdf(paste0(Out.dir,pdf_name,".pdf"),width = w, height = h, pointsize = 12)
   
   draw(heatmap_list, legend_grouping = "original",heatmap_legend_side =legend_side,heatmap_legend_list = list(legend_na),
@@ -183,10 +193,11 @@ Heat_map <- function(sheetNo,Transpose,h,w,d, score_df,legend_side,pdf_name){
 
 
 ###Ignore:‘mode(onefile)’ differs between new and previous==> NOT changing ‘onefile’ 
-Drug_p1 <-Heat_map(sheetNo=1,Transpose=T,w=12,h=3.0,score_df=scores2, legend_side="bottom",pdf_name="Drug1")
-Drug_p2 <-Heat_map(sheetNo=5,Transpose=T,w=7,h=3.0,score_df=scores2, legend_side="bottom",pdf_name="Drug2")
-TCA_p <- Heat_map(sheetNo=3,Transpose=T,w=6,h=3.0,score_df=scores2, legend_side="bottom",pdf_name="TCA")
-ISO_p <- Heat_map(sheetNo=2,Transpose=T,w=3.6,h=3.0,score_df=scores2, legend_side="bottom",pdf_name="ISO")
+Drug_p1 <-Heat_map(sheetNo=1,Transpose=T,w=12,h=3.0,score_df=scores2, legend_side="bottom",pdf_name="Drug1",bold_genes="FPP/GGPPS")
+Drug_p2 <-Heat_map(sheetNo=5,Transpose=T,w=7,h=3.0,score_df=scores2, legend_side="bottom",pdf_name="Drug2") ###resistance mechanism
+TCA_p <- Heat_map(sheetNo=3,Transpose=T,w=6,h=3.0,score_df=scores2, legend_side="bottom",pdf_name="TCA",bold_genes=c("Aco","OAT"))
+##Without row names, final version to put in main figures
+ISO_p <- Heat_map(sheetNo=2,Transpose=T,w=3.8,h=3.0,score_df=scores2, legend_side="bottom",pdf_name="ISO",bold_genes="FPP/GGPPS") ###FPP/GGPPS
 #9 inches X 3 inches
 #Invasion_p <- Heat_map(sheet44,Transpose=F)
 Invasion_p <- Heat_map(sheetNo=4,Transpose=F,w=3.0,h=12,score_df=scores2, legend_side="bottom",pdf_name="Invasion")

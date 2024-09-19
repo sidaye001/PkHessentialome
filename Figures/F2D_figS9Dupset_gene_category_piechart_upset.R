@@ -42,9 +42,10 @@ HMS_df <- HMS_df%>%dplyr::mutate(Truncation=ifelse(geneID%in%prime3$GeneID,"3pri
 #                                                                                          ifelse(MFS.slope< c2.Fslope.ep & lm.adjusted.p.value<=0.05 & Theo.num.unique.insertions>=5& HMS>0.26 & HMS<0.88,"slow",
 #                                                                                                 ifelse(Theo.num.unique.insertions<5& HMS>0.26 & HMS<0.88,"short","others"))))))
 
+######This label, especially for slow genes are not final labels
 HMS_df <- HMS_df%>%dplyr::mutate(gene_category2=ifelse(HMS<0.26,"essential",ifelse(HMS>0.88,"dispensable",
                                                                                    ifelse(MFS.slope>c1.Fslope.ep & lm.adjusted.p.value<=0.05 & Theo.num.unique.insertions>=5 & HMS>0.26 & HMS<0.88,"fast",
-                                                                                          ifelse(MFS.slope< c2.Fslope.ep & lm.adjusted.p.value<=0.05 & Theo.num.unique.insertions>=5& HMS>0.26 & HMS<0.88,"slow",
+                                                                                          ifelse(MFS.slope< c2.Fslope.ep & lm.adjusted.p.value<=0.05 & Theo.num.unique.insertions>=5 & HMS>0.26 & HMS<0.88,"slow",
                                                                                                  ifelse(Theo.num.unique.insertions<5& HMS>0.26 & HMS<0.88,"short",ifelse(HMS_df$geneID%in%prime3$GeneID,"3' truncation",
                                                                                                                                                                          ifelse(HMS_df$geneID%in%prime5$GeneID,"5' truncation",'others'))))))))
 

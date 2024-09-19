@@ -17,6 +17,7 @@ library(gridExtra)
 
 #####Mode1: essential vesus non-essential/dispensable vesus indispensable(including intermediate)
 #####Mode2: essential vesus dispensable/dispensable vesus essential(not include intermediate) and remove low confidence(short length<650bp)
+#####Mode3: essential vesus dispensable/dispensable vesus essential sticking to the previous papers criteria(lowcutoff)
 
 ###This script is mode 2
 #########This script is only for 1:1 orthologs  pairwise comparisons between Pk, Pf and Pb##################
@@ -81,35 +82,43 @@ colnames(orthologs_1on1_filtered3)[grep("GeneID.Pk_H",colnames(orthologs_1on1_fi
 orthologs_1on1_filtered3 <- orthologs_1on1_filtered3 %>% dplyr::filter(!grepl("API", geneID, fixed = TRUE) & !grepl("MIT", geneID, fixed = TRUE))
 dim(orthologs_1on1_filtered3)#3838
 ######To filter out Pf genes < 650bp(no confident genes)
-orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.transcript.length>=650)
-dim(orthologs_1on1_filtered3)
+#orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.transcript.length>=650)
+#dim(orthologs_1on1_filtered3)
+
+
+#########Pf vesus Pk#######################
 orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(!is.na(HMS)& !is.na(Pf.MIS))
 nrow(orthologs_1on1_filtered3)
-orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(((Pf.phenotype=='Mutable in CDS'&Pf.MIS>0.8)|(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2))&
-                                                                       ((HMS>0.88)|(HMS<0.26)))
+#orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(((Pf.phenotype=='Mutable in CDS'&Pf.MIS>0.8)|(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2))&((HMS>0.88)|(HMS<0.26)))
+orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(((Pf.phenotype=='Mutable in CDS')|(Pf.phenotype=='Non - Mutable in CDS'))&((HMS>0.88)|(HMS<0.26)))
 nrow(orthologs_1on1_filtered3)
 
 ###Double check 
-Pf_all0_Pk_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2&HMS>0.88)
+#Pf_all0_Pk_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2&HMS>0.88)
+Pf_all0_Pk_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Non - Mutable in CDS')
 nrow(Pf_all0_Pk_all1)
 #171
-Pk_all0_Pf_allno1 <- orthologs_1on1_filtered3%>%dplyr::filter(HMS<0.26 &(!(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2)))
+#1912
+#Pk_all0_Pf_allno1 <- orthologs_1on1_filtered3%>%dplyr::filter(HMS<0.26 &(!(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2)))
+Pk_all0_Pf_allno1 <- orthologs_1on1_filtered3%>%dplyr::filter(HMS<0.26 &(!(Pf.phenotype=='Non - Mutable in CDS')))
 nrow(Pk_all0_Pf_allno1)
 #141
-
+#188
 ######Need to remove those rows HMS or Pf.MIS = NA, such as PKNH_0206200 has no TTTAA and no HMS.
 #orthologs_1on1_filtered3 <- orthologs_1on1_filtered3[!is.na(orthologs_1on1_filtered3$HMS) & !is.na(orthologs_1on1_filtered3$Pf.MIS), ]
 #dim(orthologs_1on1_filtered3)#1851
 
 
-Pf_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Mutable in CDS'&Pf.MIS>0.8)
+#Pf_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Mutable in CDS'&Pf.MIS>0.8)
+Pf_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Mutable in CDS')
 nrow(Pf_all1)
-Pf_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2)
+#Pf_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2)
+Pf_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Non - Mutable in CDS')
 nrow(Pf_all0)
 #Pb_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.Relative.Growth.Rate>0.9&Pb.phenotype=='Dispensable')
 #Pb_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.Relative.Growth.Rate<0.2&Pb.phenotype=='Essential')
 
-write.xlsx(orthologs_1on1_filtered3,'./Output/Comparative/Pairwise/PkPfComparativeEssentialome.xlsx')
+write.xlsx(orthologs_1on1_filtered3,'./Output/Comparative/Pairwise/PkPfComparativeEssentialome_lowcutoff.xlsx')
 
 Pk_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(HMS>0.88)
 Pk_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(HMS<0.26)
@@ -214,7 +223,9 @@ colnames(orthologs_1on1_filtered3)[grep("GeneID.Pk_H",colnames(orthologs_1on1_fi
 orthologs_1on1_filtered3 <- orthologs_1on1_filtered3 %>% dplyr::filter(!grepl("API", geneID, fixed = TRUE) & !grepl("MIT", geneID, fixed = TRUE))
 dim(orthologs_1on1_filtered3)#4550
 
-orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(((Pb.Relative.Growth.Rate>0.9&Pb.phenotype=='Dispensable')|(Pb.Relative.Growth.Rate<0.2&Pb.phenotype=='Essential'))&
+#orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(((Pb.Relative.Growth.Rate>0.9&Pb.phenotype=='Dispensable')|(Pb.Relative.Growth.Rate<0.2&Pb.phenotype=='Essential'))&
+#                                                                       ((HMS>0.88)|(HMS<0.26)))
+orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(((Pb.phenotype=='Dispensable')|(Pb.phenotype=='Essential'))&
                                                                        ((HMS>0.88)|(HMS<0.26)))
 nrow(orthologs_1on1_filtered3)
 
@@ -222,8 +233,11 @@ nrow(orthologs_1on1_filtered3)
 orthologs_1on1_filtered3 <- orthologs_1on1_filtered3[!is.na(orthologs_1on1_filtered3$HMS) & !is.na(orthologs_1on1_filtered3$Pb.phenotype), ]
 dim(orthologs_1on1_filtered3)#1393
 
-Pb_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.Relative.Growth.Rate>0.9&Pb.phenotype=='Dispensable')
-Pb_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.Relative.Growth.Rate<0.2&Pb.phenotype=='Essential')
+#Pb_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.Relative.Growth.Rate>0.9&Pb.phenotype=='Dispensable')
+#Pb_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.Relative.Growth.Rate<0.2&Pb.phenotype=='Essential')
+
+Pb_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.phenotype=='Dispensable')
+Pb_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.phenotype=='Essential')
 
 Pk_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(HMS>0.88)
 Pk_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(HMS<0.26)
@@ -231,7 +245,7 @@ Pk_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(HMS<0.26)
 venn11 <- list(P.knowlesi=Pk_all1$geneID,P.berghei=Pb_all1$geneID)
 venn00 <- list(P.knowlesi=Pk_all0$geneID,P.berghei=Pb_all0$geneID)
 
-write.xlsx(orthologs_1on1_filtered3,'./Output/Comparative/Pairwise/PkPbComparativeEssentialome.xlsx')
+write.xlsx(orthologs_1on1_filtered3,'./Output/Comparative/Pairwise/PkPbComparativeEssentialome_lowcutoff.xlsx')
 
 # Set the names to italic
 italic_names <- c(expression(italic("P. knowlesi")),
@@ -302,34 +316,40 @@ colnames(orthologs_1on1_filtered3)[grep('GeneID.Pb_ANKA',colnames(orthologs_1on1
 
 ####To remove API and MIT genes 
 orthologs_1on1_filtered3 <- orthologs_1on1_filtered3 %>% dplyr::filter(!grepl("API", geneID, fixed = TRUE) & !grepl("MIT", geneID, fixed = TRUE))
-dim(orthologs_1on1_filtered3)#4550
+dim(orthologs_1on1_filtered3)
 
 ######To filter out Pf genes < 650bp(no confident genes)
-orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.transcript.length>=650)
+#orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.transcript.length>=650)
 dim(orthologs_1on1_filtered3)
 orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(!is.na(Pb.phenotype)& !is.na(Pf.MIS))
 nrow(orthologs_1on1_filtered3)
-orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(((Pf.phenotype=='Mutable in CDS'&Pf.MIS>0.8)|(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2))&
-                                                                       ((Pb.Relative.Growth.Rate>0.9&Pb.phenotype=='Dispensable')|(Pb.Relative.Growth.Rate<0.2&Pb.phenotype=='Essential')))
+#orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(((Pf.phenotype=='Mutable in CDS'&Pf.MIS>0.8)|(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2))&
+#                                                                       ((Pb.Relative.Growth.Rate>0.9&Pb.phenotype=='Dispensable')|(Pb.Relative.Growth.Rate<0.2&Pb.phenotype=='Essential')))
+orthologs_1on1_filtered3 <- orthologs_1on1_filtered3%>%dplyr::filter(((Pf.phenotype=='Mutable in CDS')|(Pf.phenotype=='Non - Mutable in CDS'))&
+                                                                       ((Pb.phenotype=='Dispensable')|(Pb.phenotype=='Essential')))
 nrow(orthologs_1on1_filtered3)
 
 ######Need to remove those rows HMS or Pb.phenotype = NA
 #orthologs_1on1_filtered3 <- orthologs_1on1_filtered3[!is.na(orthologs_1on1_filtered3$Pf.MIS) & !is.na(orthologs_1on1_filtered3$Pb.phenotype), ]
 #dim(orthologs_1on1_filtered3)#1930
 
-Pb_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.Relative.Growth.Rate>0.9&Pb.phenotype=='Dispensable')
+#Pb_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.Relative.Growth.Rate>0.9&Pb.phenotype=='Dispensable')
+Pb_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.phenotype=='Dispensable')
 nrow(Pb_all1)
-Pb_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.Relative.Growth.Rate<0.2&Pb.phenotype=='Essential')
+#Pb_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.Relative.Growth.Rate<0.2&Pb.phenotype=='Essential')
+Pb_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pb.phenotype=='Essential')
 nrow(Pb_all0)
-Pf_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Mutable in CDS'&Pf.MIS>0.8)
+#Pf_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Mutable in CDS'&Pf.MIS>0.8)
+Pf_all1 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Mutable in CDS')
 nrow(Pf_all1)
-Pf_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2)
+#Pf_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Non - Mutable in CDS'&Pf.MIS<0.2)
+Pf_all0 <- orthologs_1on1_filtered3%>%dplyr::filter(Pf.phenotype=='Non - Mutable in CDS')
 nrow(Pf_all0)
 
 venn11 <- list(P.berghei=Pb_all1$geneID,P.falciparum=Pf_all1$geneID)
 venn00 <- list(P.berghei=Pb_all0$geneID,P.falciparum=Pf_all0$geneID)
 
-write.xlsx(orthologs_1on1_filtered3,'./Output/Comparative/Pairwise/PbPfComparativeEssentialome.xlsx')
+write.xlsx(orthologs_1on1_filtered3,'./Output/Comparative/Pairwise/PbPfComparativeEssentialome_lowcutoff.xlsx')
 # Set the names to italic
 italic_names <- c(expression(italic("P. berghei")),
                   expression(italic("P. falciparum")))
@@ -398,3 +418,5 @@ grid.arrange(
   nrow = 3
 )
 dev.off()
+
+
